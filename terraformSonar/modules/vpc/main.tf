@@ -96,3 +96,7 @@ output "subnet_ids" {
 output "db_subnet_ids" {
   value = aws_subnet.dbSubnets[*].id
 }
+
+output "pub_subnet_ids" {
+  value = aws_subnet.pubSubnets[*].id
+}

@@ -11,3 +11,8 @@ module "databaseRDS" {
   source = "./modules/databases"
   db_subnet_ids = module.sonarNetworking.db_subnet_ids
 }
+
+module "loadBalancing" {
+  source = "./modules/alb"
+  pub_subnet_ids = module.sonarNetworking.pub_subnet_ids
+}
