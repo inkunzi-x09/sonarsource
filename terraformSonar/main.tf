@@ -9,5 +9,5 @@ module "ec2Computing" {
 
 module "databaseRDS" {
   source = "./modules/databases"
-  subnet_ids = module.sonarNetworking.subnet_ids
+  db_subnet_ids = module.sonarNetworking.db_subnet_ids
 }

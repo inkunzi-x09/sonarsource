@@ -92,3 +92,7 @@ resource "aws_route_table_association" "dbSubnetAsso" {
 output "subnet_ids" {
   value = aws_subnet.privSubnets[*].id
 }
+
+output "db_subnet_ids" {
+  value = aws_subnet.dbSubnets[*].id
+}
