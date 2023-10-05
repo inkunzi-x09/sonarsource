@@ -51,19 +51,3 @@ resource "aws_security_group" "sonarAlbSG" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
-
-output "sonarAlbSG_id" {
-  value = aws_security_group.sonarAlbSG.id
-}
-
-output "sonarLbListener" {
-  value = aws_lb_listener.webLst
-}
-
-output "sonarAlbTg_id" {
-  value = aws_lb_target_group.sonarAlbTg.id
-}
-
-output "load_balancer_ip" {
-  value = aws_lb.sonarLB.dns_name
-}
