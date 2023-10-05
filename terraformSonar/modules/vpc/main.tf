@@ -108,18 +108,91 @@ resource "aws_nat_gateway" "sonarNatGW" {
   }
 }
 
-output "subnet_ids" {
-  value = aws_subnet.privSubnets[*].id
+resource "aws_network_acl" "aclPubSub" {
+  vpc_id = aws_vpc.sonarVPC.id
+  subnet_ids = aws_subnet.pubSubnets[*].id
+  ingress {
+    protocol = -1
+    rule_no = 100
+    action = "allow"
+    cidr_block = var.vpcCidrBlock
+    from_port = 0
+    to_port = 0
+  }
+  ingress {
+    protocol = "6"
+    rule_no = 105
+    action = "allow"
+    cidr_block = "0.0.0.0/0"
+    from_port = 443
+    to_port = 443
+  }
+  ingress {
+    protocol = "6"
+    rule_no = 110
+    action = "allow"
+    cidr_block = "0.0.0.0/0"
+    from_port = 80
+    to_port = 80
+  }
+  egress {
+    protocol   = -1
+    rule_no    = 100
+    action     = "allow"
+    cidr_block = "0.0.0.0/0"
+    from_port  = 0
+    to_port    = 0
+  }
+  depends_on = [ aws_subnet.pubSubnets ]
+  tags = {
+    Name = "${var.projectName}-nacl-public-subnets"
+  }
 }
 
-output "db_subnet_ids" {
-  value = aws_subnet.dbSubnets[*].id
+resource "aws_network_acl" "aclPrivSub" {
+  vpc_id = aws_vpc.sonarVPC.id
+  subnet_ids = aws_subnet.privSubnets[*].id
+  ingress {
+    protocol = -1
+    rule_no = 100
+    action = "allow"
+    cidr_block = var.vpcCidrBlock
+    from_port = 0
+    to_port = 0
+  }
+  egress {
+    protocol   = -1
+    rule_no    = 100
+    action     = "allow"
+    cidr_block = "0.0.0.0/0"
+    from_port  = 0
+    to_port    = 0
+  }
+  tags = {
+    Name = "${var.projectName}-nacl-private-subnets"
+  }
 }
 
-output "pub_subnet_ids" {
-  value = aws_subnet.pubSubnets[*].id
-}
-
-output "vpc_id" {
-  value = aws_vpc.sonarVPC.id
+resource "aws_network_acl" "aclDbSub" {
+  vpc_id = aws_vpc.sonarVPC.id
+  subnet_ids = aws_subnet.dbSubnets[*].id
+  ingress {
+    protocol = -1
+    rule_no = 100
+    action = "allow"
+    cidr_block = var.vpcCidrBlock
+    from_port = 0
+    to_port = 0
+  }
+  egress {
+    protocol   = -1
+    rule_no    = 100
+    action     = "allow"
+    cidr_block = "0.0.0.0/0"
+    from_port  = 0
+    to_port    = 0
+  }
+  tags = {
+    Name = "${var.projectName}-nacl-db-subnets"
+  }
 }
