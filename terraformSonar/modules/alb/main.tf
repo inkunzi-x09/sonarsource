@@ -1,12 +1,12 @@
 resource "aws_lb" "sonarLB" {
-  name = "sonarLB"
+  name = "${var.projectName}-lb"
   internal = false
   load_balancer_type = "application"
   subnets = var.pub_subnet_ids[*]
 }
 
 resource "aws_lb_target_group" "sonarAlbTg" {
-  name        = "sonar-target-group"
+  name        = "${var.projectName}-target-group"
   port        = 80
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
@@ -24,14 +24,24 @@ resource "aws_lb_listener" "webLst" {
 }
 
 resource "aws_security_group" "sonarAlbSG" {
-  name        = "sonar-alb-security-group"
+  name        = "${var.projectName}-alb-security-group"
   vpc_id      = var.vpc_id
 
+  dynamic "ingress" {
+    for_each = var.nat_gateway_ip
+    content {
+      from_port = 80
+      to_port = 80
+      protocol = "tcp"
+      cidr_blocks = ["${ingress.value}/32"]
+    }
+  }
+
   ingress {
+    from_port   = 0
+    to_port     = 65535
     protocol    = "tcp"
-    from_port   = 80
-    to_port     = 80
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = [cidrsubnet(var.vpcCidrBlock, 8, 4), cidrsubnet(var.vpcCidrBlock, 8, 5), cidrsubnet(var.vpcCidrBlock, 8, 6)]
   }
 
   egress {

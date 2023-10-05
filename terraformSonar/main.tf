@@ -30,13 +30,16 @@ module "databaseRDS" {
   db_subnet_ids = module.sonarNetworking.db_subnet_ids
 }
 
-/*module "loadBalancing" {
+module "loadBalancing" {
   source = "./modules/alb"
+  projectName = var.projectName
   vpc_id = module.sonarNetworking.vpc_id
+  vpcCidrBlock = var.vpcCidrBlock
   pub_subnet_ids = module.sonarNetworking.pub_subnet_ids
+  nat_gateway_ip = module.sonarNetworking.nat_gw_ips
 }
 
-module "containerECS" {
+/*module "containerECS" {
   source = "./modules/ecs"
   vpc_id = module.sonarNetworking.vpc_id
   private_subnet_ids = module.sonarNetworking.subnet_ids
