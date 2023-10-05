@@ -32,7 +32,7 @@ resource "aws_security_group" "sonarTask" {
     protocol        = "tcp"
     from_port       = 3000
     to_port         = 3000
-    security_groups = [aws_security_group.lb.id]
+    security_groups = [var.alb_id]
   }
 
   egress {

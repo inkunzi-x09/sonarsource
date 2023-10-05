@@ -1,18 +1,23 @@
 variable "projectName" {
-  default = "Sonar"
+  type = string
 }
 
 variable "vpcCidrBlock" {
-  default = "10.0.0.0/16"
+  type = string
 }
 
 variable "availabilityZones" {
   type = list(string)
-  description = "Availability zones"
-  default = [ "us-east-1a", "us-east-1b", "us-east-1c" ]
 }
 
-variable "privSubnetsIP" {
+variable "pubSubnetIps" {
   type = list(string)
-  default = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
+}
+
+variable "privSubnetIps" {
+  type = list(string)
+}
+
+variable "dbSubnetIps" {
+  type = list(string)
 }

@@ -8,89 +8,95 @@ resource "aws_vpc" "sonarVPC" {
 }
 
 resource "aws_subnet" "pubSubnets" {
-  count = length(var.availabilityZones)
+  count = length(var.pubSubnetIps)
   vpc_id = aws_vpc.sonarVPC.id
-  cidr_block = element(["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"], count.index)
+  cidr_block = element(var.pubSubnetIps, count.index)
   availability_zone = element(var.availabilityZones, count.index)
+  map_public_ip_on_launch = true
   tags = {
-    Name = "Public subnet AZ${count.index + 1}"
+    Name = "${var.projectName}-public-subnet-AZ${count.index + 1}"
   }
 }
 
 resource "aws_subnet" "privSubnets" {
   count = length(var.availabilityZones)
   vpc_id = aws_vpc.sonarVPC.id
-  cidr_block = element(var.privSubnetsIP, count.index)
+  cidr_block = element(var.privSubnetIps, count.index)
   availability_zone = element(var.availabilityZones, count.index)
   tags = {
-    Name = "Private subnet AZ${count.index + 1}"
+    Name = "${var.projectName}-private-subnet-AZ${count.index + 1}"
   }
 }
 
 resource "aws_subnet" "dbSubnets" {
   count = length(var.availabilityZones)
   vpc_id = aws_vpc.sonarVPC.id
-  cidr_block = element(["10.0.7.0/24", "10.0.8.0/24", "10.0.9.0/24"], count.index)
+  cidr_block = element(var.dbSubnetIps, count.index)
   availability_zone = element(var.availabilityZones, count.index)
   tags = {
-    Name = "Database subnet AZ${count.index + 1}"
+    Name = "${var.projectName}-db-subnet-AZ${count.index + 1}"
   }
 }
 
 resource "aws_internet_gateway" "sonarIgw" {
   vpc_id = aws_vpc.sonarVPC.id
   tags = {
-    Name = "Sonar IGW"
+    Name = "${var.projectName}-igw"
   }
 }
 
-resource "aws_route_table" "rtForSonarIgw" {
+resource "aws_route_table" "rtForPubSub" {
   vpc_id = aws_vpc.sonarVPC.id
   route {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.sonarIgw.id
   }
   tags = {
-    Name = "RTToIgw"
+    Name = "${var.projectName}-rt-for-public-subnets"
   }
 }
 
 resource "aws_route_table_association" "pubSubnetAsso" {
-    count = length(var.availabilityZones)
+    count = length(var.pubSubnetIps)
     subnet_id = element(aws_subnet.pubSubnets[*].id, count.index)
-    route_table_id = aws_route_table.rtForSonarIgw.id
+    route_table_id = aws_route_table.rtForPubSub.id
 }
 
 resource "aws_route_table" "rtForPrivSub" {
+  count = length(aws_subnet.privSubnets)
   vpc_id = aws_vpc.sonarVPC.id
-  
+  route {
+    cidr_block ="0.0.0.0/0"
+    gateway_id = aws_nat_gateway.sonarNatGW[count.index].id
+  }
   tags = {
-    Name = "RTPrivSub"
+    Name = "${var.projectName}-rt-for-private-subnet-${count.index + 1}"
   }
 }
 
 resource "aws_route_table_association" "privSubnetAsso" {
     count = length(var.availabilityZones)
     subnet_id = element(aws_subnet.privSubnets[*].id, count.index)
-    route_table_id = aws_route_table.rtForPrivSub.id
+    route_table_id = aws_route_table.rtForPrivSub[count.index].id
 }
 
-resource "aws_route_table" "rtForDBSub" {
+resource "aws_route_table" "rtForDbSub" {
+  count = length(aws_subnet.dbSubnets)
   vpc_id = aws_vpc.sonarVPC.id
-  
   tags = {
-    Name = "RTDB"
+    Name = "${var.projectName}-rt-for-db-subnet-${count.index + 1}"
   }
 }
 
 resource "aws_route_table_association" "dbSubnetAsso" {
     count = length(var.availabilityZones)
     subnet_id = element(aws_subnet.dbSubnets[*].id, count.index)
-    route_table_id = aws_route_table.rtForDBSub.id
+    route_table_id = aws_route_table.rtForDbSub[count.index].id
 }
 
-/*resource "aws_eip" "nat_gateway" {
+resource "aws_eip" "nat_gateway" {
   count = length(aws_subnet.pubSubnets)
+  depends_on = [ aws_internet_gateway.sonarIgw ]
 }
 
 resource "aws_nat_gateway" "sonarNatGW" {
@@ -98,23 +104,9 @@ resource "aws_nat_gateway" "sonarNatGW" {
   allocation_id = aws_eip.nat_gateway[count.index].id
   subnet_id = aws_subnet.pubSubnets[count.index].id
   tags = {
-    "Name" = "sonar-natGW-${count.index + 1}"
-  }
-}*/
-
-resource "aws_route_table" "rtForNatGW" {
-  vpc_id = aws_vpc.sonarVPC.id
-  
-  tags = {
-    Name = "RTNatGW"
+    "Name" = "${var.projectName}-nat-gw-${count.index + 1}"
   }
 }
-
-/*resource "aws_route_table_association" "natGWAsso" {
-    count = length(var.availabilityZones)
-    subnet_id = element(aws_subnet.pubSubnets[*].id, count.index)
-    route_table_id = aws_route_table.rtForNatGW.id
-}*/
 
 output "subnet_ids" {
   value = aws_subnet.privSubnets[*].id
