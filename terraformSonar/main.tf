@@ -9,12 +9,21 @@ module "sonarNetworking" {
   dbSubnetIps = [cidrsubnet(var.vpcCidrBlock, 8, 7), cidrsubnet(var.vpcCidrBlock, 8, 8), cidrsubnet(var.vpcCidrBlock, 8, 9)]
 }
 
-/*module "ec2Computing" {
+module "ec2Computing" {
   source = "./modules/ec2"
-  subnet_ids = module.sonarNetworking.subnet_ids
+
+  projectName = var.projectName
+  vpc_id = module.sonarNetworking.vpc_id
+  availabilityZones = ["${var.AWS_REGION}a", "${var.AWS_REGION}b", "${var.AWS_REGION}c"]
+  vpcCidrBlock = var.vpcCidrBlock
+  pubSubnetIps = module.sonarNetworking.pub_subnet_ids
+  privSubnetIps = module.sonarNetworking.priv_subnet_ids
+  dbSubnetIps = module.sonarNetworking.db_subnet_ids
+  ami = var.ami
+  instanceType = var.instanceType
 }
 
-module "databaseRDS" {
+/*module "databaseRDS" {
   source = "./modules/databases"
   db_subnet_ids = module.sonarNetworking.db_subnet_ids
 }
