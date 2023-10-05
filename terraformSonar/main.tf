@@ -19,16 +19,18 @@ module "ec2Computing" {
   pubSubnetIps = module.sonarNetworking.pub_subnet_ids
   privSubnetIps = module.sonarNetworking.priv_subnet_ids
   dbSubnetIps = module.sonarNetworking.db_subnet_ids
-  ami = var.ami
-  instanceType = var.instanceType
 }
 
-/*module "databaseRDS" {
+module "databaseRDS" {
   source = "./modules/databases"
+
+  projectName = var.projectName
+  vpc_id = module.sonarNetworking.vpc_id
+  vpcCidrBlock = var.vpcCidrBlock
   db_subnet_ids = module.sonarNetworking.db_subnet_ids
 }
 
-module "loadBalancing" {
+/*module "loadBalancing" {
   source = "./modules/alb"
   vpc_id = module.sonarNetworking.vpc_id
   pub_subnet_ids = module.sonarNetworking.pub_subnet_ids
