@@ -127,3 +127,7 @@ output "db_subnet_ids" {
 output "pub_subnet_ids" {
   value = aws_subnet.pubSubnets[*].id
 }
+
+output "vpc_id" {
+  value = aws_vpc.sonarVPC.id
+}
