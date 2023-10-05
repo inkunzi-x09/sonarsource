@@ -89,7 +89,7 @@ resource "aws_route_table_association" "dbSubnetAsso" {
     route_table_id = aws_route_table.rtForDBSub.id
 }
 
-resource "aws_eip" "nat_gateway" {
+/*resource "aws_eip" "nat_gateway" {
   count = length(aws_subnet.pubSubnets)
 }
 
@@ -100,7 +100,7 @@ resource "aws_nat_gateway" "sonarNatGW" {
   tags = {
     "Name" = "sonar-natGW-${count.index + 1}"
   }
-}
+}*/
 
 resource "aws_route_table" "rtForNatGW" {
   vpc_id = aws_vpc.sonarVPC.id
@@ -110,11 +110,11 @@ resource "aws_route_table" "rtForNatGW" {
   }
 }
 
-resource "aws_route_table_association" "natGWAsso" {
+/*resource "aws_route_table_association" "natGWAsso" {
     count = length(var.availabilityZones)
     subnet_id = element(aws_subnet.pubSubnets[*].id, count.index)
     route_table_id = aws_route_table.rtForNatGW.id
-}
+}*/
 
 output "subnet_ids" {
   value = aws_subnet.privSubnets[*].id
