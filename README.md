@@ -22,3 +22,4 @@ Based on the following architecture diagram, implement the infrastructure using 
 
 - Autoscaling group with launch template for ECS, RDS and EC2 service
 - CloudWatch logs for VPC Flow Logs, EC2 instances, RDS databases and ECS clusters
+- Put in place AWS Backup plan
