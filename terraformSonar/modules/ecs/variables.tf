@@ -13,3 +13,11 @@ variable "vpcCidrBlock" {
 variable "private_subnet_ids" {
   type = list(string)
 }
+
+variable "targetGroupALBArn" {
+  type = string
+}
+
+variable "albSG" {
+  type = string
+}

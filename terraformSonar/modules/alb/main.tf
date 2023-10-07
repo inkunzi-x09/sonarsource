@@ -3,6 +3,7 @@ resource "aws_lb" "sonarLB" {
   internal = false
   load_balancer_type = "application"
   subnets = var.pub_subnet_ids[*]
+  security_groups = [aws_security_group.sonarAlbSG.id]
 }
 
 resource "aws_lb_target_group" "sonarAlbTg" {
@@ -32,6 +33,16 @@ resource "aws_security_group" "sonarAlbSG" {
     content {
       from_port = 80
       to_port = 80
+      protocol = "tcp"
+      cidr_blocks = ["${ingress.value}/32"]
+    }
+  }
+
+  dynamic "ingress" {
+    for_each = var.nat_gateway_ip
+    content {
+      from_port = 443
+      to_port = 443
       protocol = "tcp"
       cidr_blocks = ["${ingress.value}/32"]
     }

@@ -3,7 +3,7 @@ resource "aws_ecr_repository" "app_ecr_repo" {
 }
 
 resource "aws_ecs_cluster" "sonarCluster" {
-  name = "sonar-cluster" # Name your cluster here
+  name = "sonar-cluster"
 }
 
 resource "aws_ecs_task_definition" "sonar_app_task" {

@@ -45,6 +45,20 @@ resource "aws_internet_gateway" "sonarIgw" {
   }
 }
 
+resource "aws_eip" "nat_gateway" {
+  count = length(aws_subnet.pubSubnets)
+  depends_on = [ aws_internet_gateway.sonarIgw ]
+}
+
+resource "aws_nat_gateway" "sonarNatGW" {
+  count = length(aws_subnet.pubSubnets)
+  allocation_id = aws_eip.nat_gateway[count.index].id
+  subnet_id = aws_subnet.pubSubnets[count.index].id
+  tags = {
+    "Name" = "${var.projectName}-nat-gw-${count.index + 1}"
+  }
+}
+
 resource "aws_route_table" "rtForPubSub" {
   vpc_id = aws_vpc.sonarVPC.id
   route {
@@ -94,19 +108,7 @@ resource "aws_route_table_association" "dbSubnetAsso" {
     route_table_id = aws_route_table.rtForDbSub[count.index].id
 }
 
-resource "aws_eip" "nat_gateway" {
-  count = length(aws_subnet.pubSubnets)
-  depends_on = [ aws_internet_gateway.sonarIgw ]
-}
 
-resource "aws_nat_gateway" "sonarNatGW" {
-  count = length(aws_subnet.pubSubnets)
-  allocation_id = aws_eip.nat_gateway[count.index].id
-  subnet_id = aws_subnet.pubSubnets[count.index].id
-  tags = {
-    "Name" = "${var.projectName}-nat-gw-${count.index + 1}"
-  }
-}
 
 resource "aws_network_acl" "aclPubSub" {
   vpc_id = aws_vpc.sonarVPC.id

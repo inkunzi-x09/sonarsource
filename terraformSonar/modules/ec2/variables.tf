@@ -35,3 +35,7 @@ variable "availabilityZones" {
 variable "vpc_id" {
   type = string
 }
+
+variable "albSG" {
+  type = string
+}

@@ -17,3 +17,9 @@ Based on the following architecture diagram, implement the infrastructure using 
 1. Share your code repository with us.
 2. You should also provide a plan for disaster recovery.
 ![image](./Archi.png)
+
+## Way of improvements
+
+### Disaster recovery
+
+- Autoscaling group with launch template for ECS, RDS and EC2 service
