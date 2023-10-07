@@ -6,7 +6,7 @@ Duration : 1-2 weeks
 export AWS_ACCOUNT_NUMBER=YOUR_ACCOUNT
 export AWS_ACCESS_KEY_ID=YOUR_ACCESS_KEY_ID
 export AWS_SECRET_ACCESS_KEY=YOUR_SECRET_ACCESS_KEY
-export AWS_DEFAULT_REGION=eu-west-3
+export AWS_DEFAULT_REGION=us-east-1
 ``````
 
 Based on the following architecture diagram, implement the infrastructure using CloudFormation in Yaml or CDK python, taking into account that:

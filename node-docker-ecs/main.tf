@@ -1,17 +1,17 @@
 resource "aws_ecr_repository" "app_ecr_repo" {
-  name = "app-repo"
+  name = "sonar-repo"
 }
 
-resource "aws_ecs_cluster" "my_cluster" {
-  name = "app-cluster" # Name your cluster here
+resource "aws_ecs_cluster" "sonarCluster" {
+  name = "sonar-cluster" # Name your cluster here
 }
 
-resource "aws_ecs_task_definition" "app_task" {
-  family                   = "app-first-task" # Name your task
+resource "aws_ecs_task_definition" "sonar_app_task" {
+  family                   = "sonar-task"
   container_definitions    = <<DEFINITION
   [
     {
-      "name": "app-first-task",
+      "name": "sonar-task",
       "image": "${aws_ecr_repository.app_ecr_repo.repository_url}",
       "essential": true,
       "portMappings": [
@@ -25,19 +25,19 @@ resource "aws_ecs_task_definition" "app_task" {
     }
   ]
   DEFINITION
-  requires_compatibilities = ["FARGATE"] # use Fargate as the launch type
-  network_mode             = "awsvpc"    # add the AWS VPN network mode as this is required for Fargate
-  memory                   = 512         # Specify the memory the container requires
-  cpu                      = 256         # Specify the CPU the container requires
-  execution_role_arn       = "${aws_iam_role.ecsTaskExecutionRole.arn}"
+  requires_compatibilities = ["FARGATE"]
+  network_mode = "awsvpc"
+  memory                   = 512
+  cpu                      = 256         
+  execution_role_arn       = "${aws_iam_role.sonarEcsTasExecutionRole.arn}"
 }
 
-resource "aws_iam_role" "ecsTaskExecutionRole" {
-  name               = "ecsTaskExecutionRole"
-  assume_role_policy = "${data.aws_iam_policy_document.assume_role_policy.json}"
+resource "aws_iam_role" "sonarEcsTasExecutionRole" {
+  name               = "sonarEcsTasExecutionRole"
+  assume_role_policy = "${data.aws_iam_policy_document.sonarAssumeRolePolicy.json}"
 }
 
-data "aws_iam_policy_document" "assume_role_policy" {
+data "aws_iam_policy_document" "sonarAssumeRolePolicy" {
   statement {
     actions = ["sts:AssumeRole"]
 
@@ -48,45 +48,45 @@ data "aws_iam_policy_document" "assume_role_policy" {
   }
 }
 
-resource "aws_iam_role_policy_attachment" "ecsTaskExecutionRole_policy" {
-  role       = "${aws_iam_role.ecsTaskExecutionRole.name}"
+resource "aws_iam_role_policy_attachment" "sonarEcsTasExecutionRole_policy" {
+  role       = "${aws_iam_role.sonarEcsTasExecutionRole.name}"
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
-resource "aws_default_vpc" "default_vpc" {
+resource "aws_default_vpc" "sonarDefaultVpc" {
   tags = {
     Name = "Default VPC"
   }
 }
 
-# Provide references to your default subnets
-resource "aws_default_subnet" "default_subnet_a" {
-  # Use your own region here but reference to subnet 1a
+resource "aws_default_subnet" "sonarDefaultSubnetA" {
   availability_zone = "us-east-1a"
 }
 
-resource "aws_default_subnet" "default_subnet_b" {
-  # Use your own region here but reference to subnet 1b
+resource "aws_default_subnet" "sonarDefaultSubnetB" {
   availability_zone = "us-east-1b"
 }
 
-resource "aws_alb" "application_load_balancer" {
-  name               = "load-balancer-dev" #load balancer name
-  load_balancer_type = "application"
-  subnets = [ # Referencing the default subnets
-    "${aws_default_subnet.default_subnet_a.id}",
-    "${aws_default_subnet.default_subnet_b.id}"
-  ]
-  # security group
-  security_groups = ["${aws_security_group.load_balancer_security_group.id}"]
+resource "aws_default_subnet" "sonarDefaultSubnetC" {
+  availability_zone = "us-east-1c"
 }
 
-resource "aws_security_group" "load_balancer_security_group" {
+resource "aws_alb" "sonarAppLb" {
+  name               = "sonar-load-balancer"
+  load_balancer_type = "application"
+  subnets = [ 
+    "${aws_default_subnet.sonarDefaultSubnetA.id}",
+    "${aws_default_subnet.sonarDefaultSubnetB.id}",
+     "${aws_default_subnet.sonarDefaultSubnetC.id}"  ]
+  security_groups = ["${aws_security_group.sonarLbSg.id}"]
+}
+
+resource "aws_security_group" "sonarLbSg" {
   ingress {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # Allow traffic in from all sources
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
@@ -102,36 +102,36 @@ resource "aws_lb_target_group" "target_group" {
   port        = 80
   protocol    = "HTTP"
   target_type = "ip"
-  vpc_id      = "${aws_default_vpc.default_vpc.id}" # default VPC
+  vpc_id      = "${aws_default_vpc.sonarDefaultVpc.id}"
 }
 
 resource "aws_lb_listener" "listener" {
-  load_balancer_arn = "${aws_alb.application_load_balancer.arn}" #  load balancer
+  load_balancer_arn = "${aws_alb.sonarAppLb.arn}"
   port              = "80"
   protocol          = "HTTP"
   default_action {
     type             = "forward"
-    target_group_arn = "${aws_lb_target_group.target_group.arn}" # target group
+    target_group_arn = "${aws_lb_target_group.target_group.arn}"
   }
 }
 
 resource "aws_ecs_service" "app_service" {
-  name            = "app-first-service"     # Name the service
-  cluster         = "${aws_ecs_cluster.my_cluster.id}"   # Reference the created Cluster
-  task_definition = "${aws_ecs_task_definition.app_task.arn}" # Reference the task that the service will spin up
+  name            = "sonar-service"
+  cluster         = "${aws_ecs_cluster.sonarCluster.id}"
+  task_definition = "${aws_ecs_task_definition.sonar_app_task.arn}"
   launch_type     = "FARGATE"
-  desired_count   = 3 # Set up the number of containers to 3
+  desired_count   = 3
 
   load_balancer {
-    target_group_arn = "${aws_lb_target_group.target_group.arn}" # Reference the target group
-    container_name   = "${aws_ecs_task_definition.app_task.family}"
-    container_port   = 3000 # Specify the container port
+    target_group_arn = "${aws_lb_target_group.target_group.arn}"
+    container_name   = "${aws_ecs_task_definition.sonar_app_task.family}"
+    container_port   = 3000
   }
 
   network_configuration {
-    subnets          = ["${aws_default_subnet.default_subnet_a.id}", "${aws_default_subnet.default_subnet_b.id}"]
-    assign_public_ip = true     # Provide the containers with public IPs
-    security_groups  = ["${aws_security_group.service_security_group.id}"] # Set up the security group
+    subnets          = ["${aws_default_subnet.sonarDefaultSubnetA.id}", "${aws_default_subnet.sonarDefaultSubnetB.id}", "${aws_default_subnet.sonarDefaultSubnetC.id}"]
+    assign_public_ip = true
+    security_groups  = ["${aws_security_group.service_security_group.id}"]
   }
 }
 
@@ -140,8 +140,7 @@ resource "aws_security_group" "service_security_group" {
     from_port = 0
     to_port   = 0
     protocol  = "-1"
-    # Only allowing traffic in from the load balancer security group
-    security_groups = ["${aws_security_group.load_balancer_security_group.id}"]
+    security_groups = ["${aws_security_group.sonarLbSg.id}"]
   }
 
   egress {
@@ -153,5 +152,5 @@ resource "aws_security_group" "service_security_group" {
 }
 
 output "app_url" {
-  value = aws_alb.application_load_balancer.dns_name
+  value = aws_alb.sonarAppLb.dns_name
 }
