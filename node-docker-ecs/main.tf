@@ -1,9 +1,15 @@
 resource "aws_ecr_repository" "app_ecr_repo" {
   name = "sonar-repo"
+  tags = {
+    Name = "sonar-ecr-repo"
+  }
 }
 
 resource "aws_ecs_cluster" "sonarCluster" {
   name = "sonar-cluster"
+  tags = {
+    Name = "sonar-ecs-cluster"
+  }
 }
 
 resource "aws_ecs_task_definition" "sonar_app_task" {
@@ -30,6 +36,9 @@ resource "aws_ecs_task_definition" "sonar_app_task" {
   memory                   = 512
   cpu                      = 256         
   execution_role_arn       = "${aws_iam_role.sonarEcsTasExecutionRole.arn}"
+  tags = {
+    Name = "sonar-ecs-task-def"
+  }
 }
 
 resource "aws_iam_role" "sonarEcsTasExecutionRole" {
