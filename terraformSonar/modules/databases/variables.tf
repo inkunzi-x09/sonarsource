@@ -1,5 +1,5 @@
 variable "projectName" {
-  
+  type = string
 }
 
 variable "vpc_id" {

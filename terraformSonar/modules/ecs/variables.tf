@@ -1,19 +1,15 @@
-variable "vpc_id" {
-  
+variable "projectName" {
+  type = string
 }
 
-variable "alb_id" {
-  
+variable "vpc_id" {
+  type = string
+}
+
+variable "vpcCidrBlock" {
+  type = string
 }
 
 variable "private_subnet_ids" {
-  
-}
-
-variable "sonarLbListener" {
-  
-}
-
-variable "sonarAlbTg_id" {
-  
+  type = list(string)
 }
