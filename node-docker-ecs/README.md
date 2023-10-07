@@ -85,7 +85,7 @@ aws ecr --region us-east-1| docker login -u AWS -p <encrypted_token> <repo_uri>
 The output should show "Login Succeed!" Now we need to tag the image so it can be pushed to the repo. To do so enter the following command using your image name and ECR repository URI:
 
 ```sh
-docker tag centos <target_ecr_repo_uri>
+docker tag sonar-app:latest <target_ecr_repo_uri>
 docker push <ecr-repo-uri>
 ```
 
