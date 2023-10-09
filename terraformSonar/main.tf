@@ -1,7 +1,11 @@
+resource "random_uuid" "uuid" {
+}
+
 module "sonarNetworking" {
   source = "./modules/vpc"
 
   projectName = var.projectName
+  uniqueTagSuffix = substr(random_uuid.uuid.result, 0, 8)
   availabilityZones = ["${var.AWS_REGION}a", "${var.AWS_REGION}b", "${var.AWS_REGION}c"]
   vpcCidrBlock = var.vpcCidrBlock
   pubSubnetIps = [cidrsubnet(var.vpcCidrBlock, 8, 1), cidrsubnet(var.vpcCidrBlock, 8, 2), cidrsubnet(var.vpcCidrBlock, 8, 3)]
@@ -13,6 +17,7 @@ module "ec2Computing" {
   source = "./modules/ec2"
 
   projectName = var.projectName
+  uniqueTagSuffix = substr(random_uuid.uuid.result, 0, 8)
   vpc_id = module.sonarNetworking.vpc_id
   availabilityZones = ["${var.AWS_REGION}a", "${var.AWS_REGION}b", "${var.AWS_REGION}c"]
   vpcCidrBlock = var.vpcCidrBlock
@@ -26,6 +31,7 @@ module "databaseRDS" {
   source = "./modules/databases"
 
   projectName = var.projectName
+  uniqueTagSuffix = substr(random_uuid.uuid.result, 0, 8)
   vpc_id = module.sonarNetworking.vpc_id
   vpcCidrBlock = var.vpcCidrBlock
   db_subnet_ids = module.sonarNetworking.db_subnet_ids
@@ -35,19 +41,21 @@ module "loadBalancing" {
   source = "./modules/alb"
 
   projectName = var.projectName
+  uniqueTagSuffix = substr(random_uuid.uuid.result, 0, 8)
   vpc_id = module.sonarNetworking.vpc_id
   vpcCidrBlock = var.vpcCidrBlock
   pub_subnet_ids = module.sonarNetworking.pub_subnet_ids
   nat_gateway_ip = module.sonarNetworking.nat_gw_ips
 }
 
-/*module "containerECS" {
+module "containerECS" {
   source = "./modules/ecs"
 
   projectName = var.projectName
+  uniqueTagSuffix = substr(random_uuid.uuid.result, 0, 8)
   vpc_id = module.sonarNetworking.vpc_id
   vpcCidrBlock = var.vpcCidrBlock
   private_subnet_ids = module.sonarNetworking.priv_subnet_ids
   albSG = module.loadBalancing.sonarAlbSG
   targetGroupALBArn = module.loadBalancing.targetGroupALBArn
-}*/
+}

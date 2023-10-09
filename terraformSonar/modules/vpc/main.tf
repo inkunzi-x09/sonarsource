@@ -3,7 +3,7 @@ resource "aws_vpc" "sonarVPC" {
   enable_dns_support = true
   enable_dns_hostnames = true
   tags = {
-    Name = "${var.projectName}-vpc"
+    Name = "${var.projectName}-vpc-${var.uniqueTagSuffix}"
   }
 }
 
@@ -14,7 +14,7 @@ resource "aws_subnet" "pubSubnets" {
   availability_zone = element(var.availabilityZones, count.index)
   map_public_ip_on_launch = true
   tags = {
-    Name = "${var.projectName}-public-subnet-AZ${count.index + 1}"
+    Name = "${var.projectName}-public-subnet-AZ${count.index + 1}-${var.uniqueTagSuffix}"
   }
 }
 
@@ -24,7 +24,7 @@ resource "aws_subnet" "privSubnets" {
   cidr_block = element(var.privSubnetIps, count.index)
   availability_zone = element(var.availabilityZones, count.index)
   tags = {
-    Name = "${var.projectName}-private-subnet-AZ${count.index + 1}"
+    Name = "${var.projectName}-private-subnet-AZ${count.index + 1}-${var.uniqueTagSuffix}"
   }
 }
 
@@ -34,20 +34,23 @@ resource "aws_subnet" "dbSubnets" {
   cidr_block = element(var.dbSubnetIps, count.index)
   availability_zone = element(var.availabilityZones, count.index)
   tags = {
-    Name = "${var.projectName}-db-subnet-AZ${count.index + 1}"
+    Name = "${var.projectName}-db-subnet-AZ${count.index + 1}-${var.uniqueTagSuffix}"
   }
 }
 
 resource "aws_internet_gateway" "sonarIgw" {
   vpc_id = aws_vpc.sonarVPC.id
   tags = {
-    Name = "${var.projectName}-igw"
+    Name = "${var.projectName}-igw-${var.uniqueTagSuffix}"
   }
 }
 
 resource "aws_eip" "nat_gateway" {
   count = length(aws_subnet.pubSubnets)
   depends_on = [ aws_internet_gateway.sonarIgw ]
+  tags = {
+    Name = "${var.projectName}-eip-${var.uniqueTagSuffix}"
+  }
 }
 
 resource "aws_nat_gateway" "sonarNatGW" {
@@ -55,7 +58,7 @@ resource "aws_nat_gateway" "sonarNatGW" {
   allocation_id = aws_eip.nat_gateway[count.index].id
   subnet_id = aws_subnet.pubSubnets[count.index].id
   tags = {
-    "Name" = "${var.projectName}-nat-gw-${count.index + 1}"
+    "Name" = "${var.projectName}-nat-gw-${count.index + 1}-${var.uniqueTagSuffix}"
   }
 }
 
@@ -66,7 +69,7 @@ resource "aws_route_table" "rtForPubSub" {
     gateway_id = aws_internet_gateway.sonarIgw.id
   }
   tags = {
-    Name = "${var.projectName}-rt-for-public-subnets"
+    Name = "${var.projectName}-rt-for-public-subnets-${var.uniqueTagSuffix}"
   }
 }
 
@@ -84,7 +87,7 @@ resource "aws_route_table" "rtForPrivSub" {
     gateway_id = aws_nat_gateway.sonarNatGW[count.index].id
   }
   tags = {
-    Name = "${var.projectName}-rt-for-private-subnet-${count.index + 1}"
+    Name = "${var.projectName}-rt-for-private-subnet-${count.index + 1}-${var.uniqueTagSuffix}"
   }
 }
 
@@ -98,7 +101,7 @@ resource "aws_route_table" "rtForDbSub" {
   count = length(aws_subnet.dbSubnets)
   vpc_id = aws_vpc.sonarVPC.id
   tags = {
-    Name = "${var.projectName}-rt-for-db-subnet-${count.index + 1}"
+    Name = "${var.projectName}-rt-for-db-subnet-${count.index + 1}-${var.uniqueTagSuffix}"
   }
 }
 
@@ -147,7 +150,7 @@ resource "aws_network_acl" "aclPubSub" {
   }
   depends_on = [ aws_subnet.pubSubnets ]
   tags = {
-    Name = "${var.projectName}-nacl-public-subnets"
+    Name = "${var.projectName}-nacl-public-subnets-${var.uniqueTagSuffix}"
   }
 }
 
@@ -171,7 +174,7 @@ resource "aws_network_acl" "aclPrivSub" {
     to_port    = 0
   }
   tags = {
-    Name = "${var.projectName}-nacl-private-subnets"
+    Name = "${var.projectName}-nacl-private-subnets-${var.uniqueTagSuffix}"
   }
 }
 
@@ -195,6 +198,6 @@ resource "aws_network_acl" "aclDbSub" {
     to_port    = 0
   }
   tags = {
-    Name = "${var.projectName}-nacl-db-subnets"
+    Name = "${var.projectName}-nacl-db-subnets-${var.uniqueTagSuffix}"
   }
 }

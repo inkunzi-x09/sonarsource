@@ -5,7 +5,6 @@ resource "aws_instance" "ec2PrivSub" {
   subnet_id = element(var.privSubnetIps, count.index)
   availability_zone = element(var.availabilityZones, count.index)
   vpc_security_group_ids = [aws_security_group.sonarInstanceSg.id]
-  
   root_block_device {
     volume_type = "gp2"
     volume_size = "8"
@@ -18,14 +17,14 @@ resource "aws_instance" "ec2PrivSub" {
     EOF
 
   tags = {
-    Name = "${var.projectName}-ec2-instance-AZ${count.index + 1}"
+    Name = "${var.projectName}-ec2-instance-AZ${count.index + 1}-${var.uniqueTagSuffix}"
   }
 }
 
 
 
 resource "aws_security_group" "sonarInstanceSg" {
-  name = "${var.projectName}-ec2-instance-sg"
+  name = "${var.projectName}-ec2-instance-sg-${var.uniqueTagSuffix}"
   vpc_id = var.vpc_id
 
   ingress {
@@ -47,5 +46,8 @@ resource "aws_security_group" "sonarInstanceSg" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+  tags = {
+    Name = "${var.projectName}-sg-ec2-${var.uniqueTagSuffix}"
   }
 }

@@ -1,17 +1,23 @@
 resource "aws_lb" "sonarLB" {
-  name = "${var.projectName}-lb"
+  name = "${var.projectName}-lb-${var.uniqueTagSuffix}"
   internal = false
   load_balancer_type = "application"
   subnets = var.pub_subnet_ids[*]
   security_groups = [aws_security_group.sonarAlbSG.id]
+  tags = {
+    Name = "${var.projectName}-alb-${var.uniqueTagSuffix}"
+  }
 }
 
 resource "aws_lb_target_group" "sonarAlbTg" {
-  name        = "${var.projectName}-target-group"
+  name        = "${var.projectName}-target-group-${var.uniqueTagSuffix}"
   port        = 80
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
   target_type = "ip"
+  tags = {
+    Name = "${var.projectName}-target-group-${var.uniqueTagSuffix}"
+  }
 }
 
 resource "aws_lb_listener" "webLst" {
@@ -22,10 +28,13 @@ resource "aws_lb_listener" "webLst" {
     target_group_arn = aws_lb_target_group.sonarAlbTg.id
     type = "forward"
   }
+  tags = {
+    Name = "${var.projectName}-alb-listener-${var.uniqueTagSuffix}"
+  }
 }
 
 resource "aws_security_group" "sonarAlbSG" {
-  name        = "${var.projectName}-alb-security-group"
+  name        = "${var.projectName}-alb-security-group-${var.uniqueTagSuffix}"
   vpc_id      = var.vpc_id
 
   dynamic "ingress" {
@@ -60,5 +69,8 @@ resource "aws_security_group" "sonarAlbSG" {
     to_port   = 0
     protocol  = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+  tags = {
+    Name = "${var.projectName}-sg-alb-${var.uniqueTagSuffix}"
   }
 }

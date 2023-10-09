@@ -21,3 +21,7 @@ variable "targetGroupALBArn" {
 variable "albSG" {
   type = string
 }
+
+variable "uniqueTagSuffix" {
+  type = string
+}

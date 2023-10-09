@@ -2,6 +2,10 @@ variable "projectName" {
   type = string
 }
 
+variable "uniqueTagSuffix" {
+  type = string
+}
+
 variable "vpcCidrBlock" {
   type = string
 }

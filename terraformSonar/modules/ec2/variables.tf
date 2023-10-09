@@ -39,3 +39,7 @@ variable "vpc_id" {
 variable "albSG" {
   type = string
 }
+
+variable "uniqueTagSuffix" {
+  type = string
+}

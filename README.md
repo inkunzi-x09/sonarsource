@@ -2,13 +2,6 @@
 
 Duration : 1-2 weeks
 
-```sh
-export AWS_ACCOUNT_NUMBER=YOUR_ACCOUNT
-export AWS_ACCESS_KEY_ID=YOUR_ACCESS_KEY_ID
-export AWS_SECRET_ACCESS_KEY=YOUR_SECRET_ACCESS_KEY
-export AWS_DEFAULT_REGION=us-east-1
-``````
-
 Based on the following architecture diagram, implement the infrastructure using CloudFormation in Yaml or CDK python, taking into account that:
 - It should be easy to deploy and updates the infrastructure
 - It should be possible to re-use the template to deploy a 2nd iteration of that infrastructure in the same AWS account and the same region
@@ -17,6 +10,21 @@ Based on the following architecture diagram, implement the infrastructure using 
 1. Share your code repository with us.
 2. You should also provide a plan for disaster recovery.
 ![image](./Archi.png)
+
+## Deployment process
+
+```sh
+aws configure
+git clone https://github.com/inkunzi-x09/sonarsource.git
+cd terraformSonar
+terraform init
+terraform plan
+terraform apply
+```
+
+If you want to deploy a second architecture you can copy the folder "terraformSonar" and paste it wherever you want.
+Then, in the backend.tf file, you have to change the name of the destination bucket S3 where the state files will be stored.
+Make sure that, in your AWS account, you have created another bucket with the same name provided before.
 
 ## Way of improvements
 

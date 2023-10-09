@@ -17,3 +17,7 @@ variable "vpcCidrBlock" {
 variable "nat_gateway_ip" {
   type = list(string)
 }
+
+variable "uniqueTagSuffix" {
+  type = string
+}
