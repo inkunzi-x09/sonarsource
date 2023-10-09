@@ -1,5 +1,7 @@
 # Cloud Engineer Assignment
 
+## Rules
+
 Duration : 1-2 weeks
 
 Based on the following architecture diagram, implement the infrastructure using CloudFormation in Yaml or CDK python, taking into account that:
